@@ -1,0 +1,3 @@
+##### Initial settings [Server2] #####
+
+# Instalar CentOS_server2.example.net...

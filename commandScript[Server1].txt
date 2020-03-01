@@ -1,0 +1,279 @@
+##### Initial settings [Server1] #####
+
+# Instalar CentOS_server1.example.net...
+
+# Setar modo Bridge na placa de rede.
+
+# Modificar hostname:
+sudo vi /etc/hostname
+
+# Alterar para:
+server1.example.net
+
+# Modificar o host:
+sudo vi /etc/hosts
+
+# Alterar para:
+server1.example.net
+
+# Reiniciar o sistema para que as alterações tenham efeito:
+sudo reboot
+
+# Para ver a configuração atual de host:
+hostnamectl
+
+# Maneira automática:
+sudo hostnamectl set-hostname server1.example.net
+
+# Para ver a configuração atual de host:
+hostnamectl
+
+# Liberar comandos de root no sudo sem pedir senha:
+sudo vi /etc/sudoers
+addLine: adailsilva ALL=(ALL) NOPASSWD: ALL
+
+# Adicionar usuário backup:
+sudo adduser backup
+
+# Adicionar user backup aos sudoers:
+sudo adduser backup sudo
+
+# Liberar comandos de root no sudo sem pedir senha:
+sudo vi /etc/sudoers
+addLine: backup ALL=(ALL) NOPASSWD: ALL
+
+# Criar senha para usuário "backup":
+su
+Hacker101
+passwd backup
+Hacker101
+
+# Listar configurações das placas de rede:
+sudo cat /etc/sysconfig/network-scripts/ifcfg-enp0s3 .bash
+
+# Ativando Placa de Rede
+sudo ifup enp0s3
+
+# Atualizar o sistema:
+sudo yum upgrade -y
+
+# Instalar ferramentas de rede e bridge:
+sudo yum install net-tools bridge-utils -y
+
+# Habilitar ip_forward:
+sed -i 's/^\(net.ipv4.ip_forward =\).*/\1 1/' /etc/sysctl.conf; sysctl -p
+
+# Checar modulos se estão em execução:
+modinfo bridge
+
+# Ajustar:
+sudo vi /etc/sysconfig/network-scripts/ifcfg-br0
+
+# Verificar configurações da rede:
+ifconfig
+
+# Caso a placa não pegue IP, executar:
+sudo dhclient enp0s3
+
+# Consultar resultado:
+sudo nm-tool
+
+# Consultar resultado:
+sudo mii-tool
+
+# Instalar o pacote do servidor SSH openssh usando o comando dnf:
+sudo dnf install openssh-server -y
+
+# Iniciar o daemon sshd:
+sudo systemctl start sshd
+
+# Defina para iniciar após a reinicialização:
+sudo systemctl enable sshd
+
+# Confirmar se o daemon sshd está em funcionamento:
+sudo systemctl status sshd
+
+# Iniciar Firewall:
+sudo systemctl start firewalld
+
+# Defina para iniciar após a reinicialização:
+sudo systemctl enable firewalld
+
+# Abrir a porta SSH 22 para permitir o tráfego de entrada:
+sudo firewall-cmd --zone=public --permanent --add-service=ssh
+sudo firewall-cmd --reload
+
+# OU:
+
+# Sem especificar a zona:
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --reload
+
+# Para troca de porta do serviço e nova liberação:
+# ssh de 22 para 2200:
+sudo firewall-cmd --permanent --remove-service=ssh
+sudo firewall-cmd --permanent --add-port=2200/tcp
+sudo firewall-cmd --reload
+
+# Para liberar http e https:
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --reload
+
+# Para listar todas as regras cadastradas no Firewall:
+sudo firewall-cmd --permanent --list-all
+
+# Opcionalmente, localize o arquivo de configuração do servidor SSH:
+/etc/ssh/sshd_config e execute a configuração customizada:
+
+# Toda vez que for alterado o arquivo de configuração:
+/etc/ssh/sshd_config, recarreguar o serviço sshd para aplicar as alterações:
+sudo systemctl reload sshd
+
+# Logar como usuário backup para a chave ser gerada especificamente para ele:
+su backup
+senha: Hacker101
+
+# Gerar chaves SSH:
+ssh-keygen -t rsa
+
+# Escrever frase secreta:
+AdailSilva
+
+# Definir diretório para guardar a chave privada:
+/home/backup/.ssh/id_rsa
+
+# Definir senha para Gerar o par de chaves RSA:
+Hacker101
+
+# Adicionar chaves ao sistema que se deseja Login:
+ssh backup@server2.example.net mkdir -p ~/.ssh
+ssh backup@192.168.0.9 mkdir -p ~/.ssh
+
+# Copiar chaves RSA para o sistema que se deseja Login:
+sudo cat ~/.ssh/id_rsa.pub | ssh backup@server2.example.net 'cat >> ~/.ssh/authorized_keys'
+sudo cat ~/.ssh/id_rsa.pub | ssh backup@192.168.0.9 'cat >> ~/.ssh/authorized_keys'
+
+# Procurar pacote do MariaDB no repositório do CentOS:
+sudo yum seach mariadb
+
+# Verificar a versão do MariaDB encontrado:
+sudo yum info mariadb
+
+# Instalar MariaDB:
+sudo yum install mariadb-server -y
+
+# Iniciar o mariadb.service:
+sudo systemctl start mariadb.service
+
+# Ativar o mariadb.service no momento da inicialização do servidor:
+sudo systemctl enable mariadb.service
+
+# Verificar status do mariadb.service:
+sudo systemctl status mariadb.service
+
+# Instalar proteção MariaDB:
+sudo mysql_secure_installation
+
+# Reponder ao questionário de segurança.
+
+# Habilite o firewall o serviço MariaDB de forma permanente
+sudo firewall-cmd --zone=public --add-service=mysql --permanent
+
+# Logando no banco:
+# 1 - Logando no banco:
+# 2 - Criar usuário backup e definir sua senha:
+# 3 - Dar os privilégios para poder efetuar as rotinas de backup:
+# 4 - Recarregar privilégios:
+# 5 - Criar banco de dados "legacy":
+# 6 - Selecionar o Banco "legacy":
+# 7 - Criar tabela "manufacturer":
+# 8 - Listar todos os bancos de dados:
+# 9 - Sair do MariaDB:
+# 10 - Inserir valores para teste:
+# 11 - Descrever tabela "manufacturer"
+# 12 - Selecionar todos os dados contidos.
+
+mysql -u root -e "
+CREATE USER IF NOT EXISTS backup@localhost IDENTIFIED BY 'Hacker101';
+GRANT SELECT, RELOAD, SHOW DATABASES, LOCK TABLES ON *.* TO 'backup'@'localhost';
+FLUSH PRIVILEGES;
+CREATE DATABASE IF NOT EXISTS legacy;
+USE legacy;
+CREATE TABLE IF NOT EXISTS legacy.manufacturer (
+  id BIGINT(50) NOT NULL AUTO_INCREMENT,
+  name VARCHAR(50) NOT NULL,
+  address VARCHAR(150),
+  ddd INT(2),
+  fone VARCHAR(9),
+  email VARCHAR(30),
+  PRIMARY KEY (id))
+ENGINE = InnoDB;
+SHOW DATABASES;
+INSERT INTO legacy.manufacturer (name,address,ddd,fone,email) values ('Faculdade Santo Agostinho','Av. Prof. Valter Alencar, 665 - São Pedro, Teresina - PI, 64019-625',86,'3215-8700','pos-graduacao@fsa.com.br');
+DESCRIBE legacy.manufacturer;
+SELECT * FROM legacy.manufacturer;
+\q;"
+
+# Instalar ferramentas de rede para usar o nslookup:
+sudo yum install bind-utils -y
+
+# Consulta DNS local (localhost / 127.0.0.1):
+sudo nslookup localhost
+
+# Consulta DNS de Sites (Exemplo Google):
+sudo nslookup google.com
+
+# Testar rotina de Back-UP:
+# Logar no MySQL Shell:
+mysql -u root -p
+
+# Listar bancos disponíveis:
+SHOW DATABASES;
+
+# Selecionar banco "legacy":
+USE legacy;
+
+# Selecionar tudo na tabela "manufacturer" do banco "legacy";
+SELECT * FROM manufacturer;
+
+# Conceder permissão de execução ao arquivo:
+sudo chmod +x /opt/scripts/backup_mariadb.sh
+
+# Ver processos que estão ativos no SO:
+The options used in this command have the following meaning:
+# -t - Show TCP ports.
+# -u - Show UDP ports.
+# -n - Show numerical addresses instead of resolving hosts.
+# -l - Show only listening ports.
+# -p - Show the PID and name of the listener’s process. This information is shown only if
+
+sudo netstat -tunlp
+ss -tunlp
+
+
+RECUPERAÇÃO DE SENHA DO ROOT NO LINUX
+systemctl reboot;
+interromper a contagem regressiva;
+opção "e" no start (grub) na primeira linha;
+acrescentar na linha "linux":
+onde encontra a imagem do kernel, colocar no final da linha o seguinte:
+rd.break
+Ctrl+X
+remontar /sysroot
+commando:
+mount -o remount, rw /sysroot
+chroot /sysroot
+passwd root
+novaSenha
+alterar firewall do filesystem (selinux) que gerencia arquivos no RedHat.
+touch /.autorelabel
+exit
+exit
+demora um pouco para reconhecer tudo em todo o filesystem...
+remarcando todo o filesystem.
+
+cd é um comando do tipo execução 'x':
+chmod +x para poder acessar um diretório.
+
+
